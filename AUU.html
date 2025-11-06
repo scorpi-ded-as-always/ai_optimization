@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Manufacturing Optimization</title>
+    <style>
+        /* --- Basic Styling --- */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #f0f2f6;
+            color: #333;
+            margin: 0;
+        }
+        
+        /* --- Login Overlay --- */
+        #login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f0f2f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        #login-box {
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            width: 300px;
+            text-align: center;
+        }
+        #login-box h2 {
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+            color: #262730;
+        }
+        #login-box .input-group {
+            margin-bottom: 1rem;
+            text-align: left;
+        }
+        #login-box label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #555;
+        }
+        #login-box input[type="text"],
+        #login-box input[type="password"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box; /* Important for padding */
+        }
+        #login-box .login-button {
+            width: 100%;
+            background-color: #0068c9;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 1rem;
+        }
+        #login-box .login-button:hover {
+            background-color: #0056a8;
+        }
+        #login-error {
+            color: #d93025;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            display: none; /* Hidden by default */
+        }
+
+        /* --- Main App Container (Hidden by default) --- */
+        .main-app {
+            display: none; /* Hidden until login */
+            padding: 2rem;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+        header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid #e6e6e6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        header .title-group {
+            flex-grow: 1;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 2rem;
+            color: #262730;
+        }
+        header p {
+            margin: 4px 0 0;
+            font-size: 1rem;
+            color: #666;
+        }
+        #logout-button {
+            background-color: #d93025;
+            color: white;
+            border: none;
+            padding: 0.6rem 1rem;
+            font-size: 0.9rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        #logout-button:hover {
+            background-color: #b0261e;
+        }
+
+        /* --- Tab Navigation --- */
+        .tab-nav {
+            display: flex;
+            background-color: #f0f2f6;
+            border-bottom: 1px solid #e6e6e6;
+        }
+        .tab-button {
+            padding: 1rem 1.5rem;
+            border: none;
+            background-color: transparent;
+            cursor: pointer;
+            font-size: 1rem;
+            color: #555;
+            border-bottom: 2px solid transparent;
+        }
+        .tab-button:hover {
+            background-color: #e6e6e6;
+        }
+        .tab-button.active {
+            color: #0068c9;
+            border-bottom: 2px solid #0068c9;
+            font-weight: 600;
+        }
+
+        /* --- Tab Content --- */
+        .tab-content {
+            display: none; /* Hidden by default */
+            padding: 2rem;
+        }
+        .tab-content.active {
+            display: block; /* Shown when active */
+        }
+        .tab-content h2 {
+            margin-top: 0;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 0.5rem;
+        }
+
+        /* --- UI Elements --- */
+        .kpi-container {
+            display: grid;
+            /* Now 4 columns, auto-fit will handle this */
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .kpi-card {
+            background-color: #fafafa;
+            border: 1px solid #e6e6e6;
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        .kpi-card .value {
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: #0068c9;
+            margin: 0;
+        }
+        .kpi-card .label {
+            font-size: 1rem;
+            color: #555;
+            margin: 0;
+        }
+        
+        button.action-button {
+            background-color: #0068c9;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-bottom: 1rem;
+            margin-right: 0.5rem;
+        }
+        button.action-button:hover {
+            background-color: #0056a8;
+        }
+        button.complete-button {
+            background-color: #28a745;
+        }
+        button.complete-button:hover {
+            background-color: #218838;
+        }
+
+        /* --- Table Styling --- */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 0.75rem;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+            font-weight: 600;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        /* Simple spinner for demo */
+        .spinner {
+            display: none; /* Hidden by default */
+            margin: 1rem 0;
+            color: #555;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="login-overlay">
+        <div id="login-box">
+            <h2>Admin Login</h2>
+            <form id="login-form">
+                <div class="input-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" value="admin">
+                </div>
+                <div class="input-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" value="1111">
+                </div>
+                <button type="submit" class="login-button">Login</button>
+                <p id="login-error">Invalid username or password.</p>
+            </form>
+        </div>
+    </div>
+
+    <div class="main-app">
+        <div class="container">
+            <header>
+                <div class="title-group">
+                    <h1>🏭 AI for Manufacturing Process Optimization</h1>
+                    <p>Prototype based on SRS v1.0 (Admin Panel)</p>
+                </div>
+                <button id="logout-button">Logout</button>
+            </header>
+
+            <nav class="tab-nav">
+                <button class="tab-button active" onclick="showTab(event, 'dashboard')">Dashboard</button>
+                <button class="tab-button" onclick="showTab(event, 'maintenance')">Predictive Maintenance</button>
+                <button class="tab-button" onclick="showTab(event, 'scheduling')">Job Scheduling</button>
+                <button class="tab-button" onclick="showTab(event, 'reporting')">Reporting</button>
+            </nav>
+
+            <div id="dashboard" class="tab-content active">
+                <h2>KPI Dashboard</h2>
+                <div class="kpi-container">
+                    <div class="kpi-card">
+                        <p class="value">12</p>
+                        <p class="label">Machines Monitored</p>
+                    </div>
+                    <div class="kpi-card">
+                        <p class="value" id="kpi-alerts">0</p>
+                        <p class="label">Active High-Priority Alerts</p>
+                    </div>
+                    <div class="kpi-card">
+                        <p class="value">8</p>
+                        <p class="label">Jobs in Queue</p>
+                    </div>
+                    <div class="kpi-card">
+                        <p class="value" id="kpi-jobs-done">0%</p>
+                        <p class="label">Job Completion</p>
+                    </div>
+                </div>
+                <h3>Active Alerts</h3>
+                <p id="dashboard-alert-placeholder">Run "Predictive Analysis" in the next tab to see alerts here.</p>
+                <table id="dashboard-alert-table" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>Machine ID</th>
+                            <th>Predicted Issue</th>
+                            <th>Severity</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dashboard-alert-body">
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="maintenance" class="tab-content">
+                <h2>Predictive Maintenance</h2>
+                <button class="action-button" onclick="runMaintenance()">Run Predictive Analysis</button>
+                <div id="maintenance-spinner" class="spinner">Analyzing machine data...</div>
+                <h3>System Alerts</h3>
+                <p id="maintenance-alert-placeholder">Click the button to run analysis and generate alerts.</p>
+                <table id="maintenance-alert-table" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>Machine ID</th>
+                            <th>Predicted Issue</th>
+                            <th>Severity</th>
+                            <th>Predicted Failure (hrs)</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="maintenance-alert-body">
+                        </tbody>
+                </table>
+            </div>
+
+            <div id="scheduling" class="tab-content">
+                <h2>Job Scheduling Optimization</h2>
+                <button class="action-button" onclick="runScheduling()">Generate Optimized Schedule</button>
+                <button class="action-button complete-button" onclick="completeJob()" id="complete-job-button" style="display: none;">
+                    Simulate Job Completion
+                </button>
+                <div id="scheduling-spinner" class="spinner">Calculating optimal schedule...</div>
+                <h3>Optimized Schedule</h3>
+                <p id="schedule-placeholder">Click "Generate Optimized Schedule" to create the job list.</p>
+                <p id="completion-status" style="margin-top: 1rem; color: #555;"></p>
+                
+                <table id="schedule-table" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>Job ID</th>
+                            <th>Machine ID</th>
+                            <th>Start Time (Hour)</th>
+                            <th>End Time (Hour)</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="schedule-table-body">
+                        </tbody>
+                </table>
+            </div>
+
+            <div id="reporting" class="tab-content">
+                <h2>Generate Reports</h2>
+                <p>Click the buttons to download a CSV report based on the data in the other tabs.</p>
+                <button class="action-button" onclick="generateMachineReport()">Download Machine Alert Report (CSV)</button>
+                <button class="action-button" onclick="generateJobReport()">Download Job Schedule Report (CSV)</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA STATE (Source of Truth) ---
+        let maintenanceRun = false;
+        let scheduleRun = false;
+        let completedJobs = 0;
+        const totalJobs = 8;
+        
+        // Data for Predictive Maintenance
+        const alertData = [
+            { id: "M-001", issue: "High Temp/Vibration", severity: "High", time: 10.4, status: "New" },
+            { id: "M-003", issue: "High Temp/Vibration", severity: "Medium", time: 22.1, status: "New" },
+            { id: "M-007", issue: "Overload", severity: "Medium", time: 48.0, status: "New" },
+            { id: "M-011", issue: "High Temp", severity: "Low", time: 72.0, status: "New" }
+        ];
+        
+        // Data for Job Schedule
+        let jobData = [
+            { id: "J-103", machine: "M-002", start: 0, end: 3, status: "Pending" },
+            { id: "J-104", machine: "M-001", start: 3, end: 9, status: "Pending" },
+            { id: "J-101", machine: "M-001", start: 9, end: 17, status: "Pending" },
+            { id: "J-105", machine: "M-004", start: 17, end: 22, status: "Pending" },
+            { id: "J-102", machine: "M-003", start: 22, end: 34, status: "Pending" },
+            { id: "J-106", machine: "M-002", start: 34, end: 38, status: "Pending" },
+            { id: "J-107", machine: "M-005", start: 38, end: 48, status: "Pending" },
+            { id: "J-108", machine: "M-001", start: 48, end: 50, status: "Pending" }
+        ];
+
+        // --- LOGIN & LOGOUT LOGIC ---
+        document.getElementById('login-form').addEventListener('submit', function(event) {
+            event.preventDefault(); // Stop form from submitting
+            let user = document.getElementById('username').value;
+            let pass = document.getElementById('password').value;
+            let errorMsg = document.getElementById('login-error');
+
+            if (user === 'admin' && pass === '1111') {
+                document.getElementById('login-overlay').style.display = 'none';
+                document.querySelector('.main-app').style.display = 'block';
+                errorMsg.style.display = 'none';
+            } else {
+                errorMsg.style.display = 'block';
+            }
+        });
+
+        document.getElementById('logout-button').addEventListener('click', function() {
+            document.getElementById('login-overlay').style.display = 'flex';
+            document.querySelector('.main-app').style.display = 'none';
+            document.getElementById('password').value = '';
+            document.getElementById('login-error').style.display = 'none';
+            location.reload(); // Reload to reset the demo state
+        });
+
+        // --- Tab Switching Logic ---
+        function showTab(event, tabName) {
+            let tabContents = document.getElementsByClassName('tab-content');
+            for (let i = 0; i < tabContents.length; i++) {
+                tabContents[i].classList.remove('active');
+            }
+            let tabButtons = document.getElementsByClassName('tab-button');
+            for (let i = 0; i < tabButtons.length; i++) {
+                tabButtons[i].classList.remove('active');
+            }
+            document.getElementById(tabName).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        // --- Simulation Logic: Predictive Maintenance ---
+        function runMaintenance() {
+            document.getElementById('maintenance-spinner').style.display = 'block';
+            document.getElementById('maintenance-alert-placeholder').style.display = 'none';
+            document.getElementById('maintenance-alert-table').style.display = 'none';
+
+            setTimeout(() => {
+                maintenanceRun = true; // Set flag
+                document.getElementById('maintenance-spinner').style.display = 'none';
+                
+                let maintenanceTbody = document.getElementById('maintenance-alert-body');
+                let dashboardTbody = document.getElementById('dashboard-alert-body');
+                maintenanceTbody.innerHTML = '';
+                dashboardTbody.innerHTML = '';
+
+                alertData.forEach(alert => {
+                    let row1 = `<tr>
+                        <td>${alert.id}</td><td>${alert.issue}</td>
+                        <td>${alert.severity}</td><td>${alert.time}</td>
+                        <td>${alert.status}</td>
+                    </tr>`;
+                    maintenanceTbody.innerHTML += row1;
+
+                    let row2 = `<tr>
+                        <td>${alert.id}</td><td>${alert.issue}</td>
+                        <td>${alert.severity}</td><td>${alert.status}</td>
+                    </tr>`;
+                    dashboardTbody.innerHTML += row2;
+                });
+
+                document.getElementById('maintenance-alert-table').style.display = 'table';
+                document.getElementById('dashboard-alert-table').style.display = 'table';
+                document.getElementById('dashboard-alert-placeholder').style.display = 'none';
+                
+                document.getElementById('kpi-alerts').innerText = alertData.length;
+            }, 1000); // 1-second delay
+        }
+
+        // --- Simulation Logic: Job Scheduling ---
+        function runScheduling() {
+            document.getElementById('scheduling-spinner').style.display = 'block';
+            document.getElementById('schedule-placeholder').style.display = 'none';
+            document.getElementById('schedule-table').style.display = 'none';
+
+            setTimeout(() => {
+                scheduleRun = true; // Set flag
+                document.getElementById('scheduling-spinner').style.display = 'none';
+                
+                // Reset job completion
+                completedJobs = 0;
+                jobData.forEach(job => job.status = "Pending"); // Reset data array
+                updateJobCompletionKPI();
+                document.getElementById('completion-status').innerText = 'Jobs are queued and ready to start.';
+                
+                // Populate table from data array
+                let scheduleTbody = document.getElementById('schedule-table-body');
+                scheduleTbody.innerHTML = '';
+                jobData.forEach(job => {
+                    let row = `<tr>
+                        <td>${job.id}</td><td>${job.machine}</td>
+                        <td>${job.start}</td><td>${job.end}</td>
+                        <td class="job-status">${job.status}</td>
+                    </tr>`;
+                    scheduleTbody.innerHTML += row;
+                });
+
+                document.getElementById('schedule-table').style.display = 'table';
+                document.getElementById('complete-job-button').style.display = 'inline-block';
+            }, 800); // 0.8-second delay
+        }
+
+        // --- Simulation Logic: Job Completion ---
+        function updateJobCompletionKPI() {
+            let percentage = (completedJobs / totalJobs) * 100;
+            document.getElementById('kpi-jobs-done').innerText = `${Math.round(percentage)}%`;
+        }
+
+        function completeJob() {
+            if (!scheduleRun) {
+                alert("Please generate the schedule first.");
+                return;
+            }
+            if (completedJobs >= totalJobs) {
+                document.getElementById('completion-status').innerText = 'All jobs are complete!';
+                return;
+            }
+
+            // Update the data array
+            jobData[completedJobs].status = '✅ Done';
+            
+            // Update the HTML table
+            let statusCells = document.querySelectorAll('#schedule-table .job-status');
+            let currentJobCell = statusCells[completedJobs];
+            currentJobCell.innerText = '✅ Done';
+            currentJobCell.style.color = '#28a745';
+            
+            completedJobs++;
+            updateJobCompletionKPI();
+            
+            document.getElementById('completion-status').innerText = (completedJobs === totalJobs) ?
+                'All jobs are complete!' : `Job ${completedJobs} of ${totalJobs} complete.`;
+        }
+        
+        // --- REPORTING LOGIC ---
+
+        function downloadCSV(csvContent, filename) {
+            // Create a blob
+            let blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            
+            // Create a link to download it
+            let link = document.createElement("a");
+            if (link.download !== undefined) { // Feature detection
+                let url = URL.createObjectURL(blob);
+                link.setAttribute("href", url);
+                link.setAttribute("download", filename);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            }
+        }
+
+        function generateMachineReport() {
+            if (!maintenanceRun) {
+                alert("Please run 'Predictive Analysis' first before downloading the report.");
+                return;
+            }
+            
+            let csv = "Machine ID,Predicted Issue,Severity,Predicted Failure (hrs),Status\n";
+            alertData.forEach(row => {
+                csv += `${row.id},"${row.issue}",${row.severity},${row.time},${row.status}\n`;
+            });
+            
+            downloadCSV(csv, "machine_alert_report.csv");
+        }
+        
+        function generateJobReport() {
+            if (!scheduleRun) {
+                alert("Please run 'Generate Optimized Schedule' first before downloading the report.");
+                return;
+            }
+            
+            let csv = "Job ID,Machine ID,Start Time (Hour),End Time (Hour),Status\n";
+            jobData.forEach(row => {
+                // We use the jobData array which has the most up-to-date status
+                csv += `${row.id},${row.machine},${row.start},${row.end},"${row.status}"\n`;
+            });
+            
+            downloadCSV(csv, "job_schedule_report.csv");
+        }
+        
+    </script>
+
+</body>
+</html>
